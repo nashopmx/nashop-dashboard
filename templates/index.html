@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard TOM Pro</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; padding: 20px; color: #333; transition: background 0.3s; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        .btn-salir-proyector {
+            display: none; position: fixed; bottom: 20px; right: 20px; background: #e74c3c; color: white; border: none; padding: 10px 18px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; transition: background 0.2s;
+        }
+        .btn-salir-proyector:hover { background: #c0392b; }
+
+        .store-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px; }        
+        .store-info { display: flex; align-items: center; gap: 15px; }
+        .store-name { font-size: 20px; font-weight: bold; color: #2c3e50; }
+        .store-logo-img { height: 90px; width: auto; object-fit: contain; }
+        
+        .projector-tournament-title { display: none; text-align: center; font-size: 24px; font-weight: bold; color: #f1c40f; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .admin-panel { background-color: #ecf0f1; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; border: 2px dashed #bdc3c7; }
+        .upload-btn { background-color: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.3s; }
+        .upload-btn:hover { background-color: #2980b9; }
+        
+        /* MODO PROYECTOR */
+body.projector-mode { 
+    background-color: #111; 
+    margin: 0;
+    padding: 15px;
+    height: 100vh;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+body.projector-mode .container { 
+    max-width: 100% !important; 
+    height: 100% !important;
+    display: flex;
+    flex-direction: column;
+    background: #111; 
+    color: #fff; 
+    box-shadow: none; 
+    padding: 0;
+}
+
+/* Ocultar elementos de administración */
+body.projector-mode .admin-panel, 
+body.projector-mode .upload-section-toggle, 
+body.projector-mode h1, 
+body.projector-mode .btn-proyector { 
+    display: none !important; 
+}
+
+/* En rondas normales ocultamos los standings parciales */
+body.projector-mode:not(.torneo-terminado-vista) .standings-section {
+    display: none !important;
+}
+
+/* Encabezado en proyector */
+body.projector-mode .store-header { 
+    display: flex !important; 
+    flex-direction: row !important; 
+    align-items: center !important; 
+    justify-content: space-between !important; 
+    border-bottom: 1px solid #333; 
+    padding-bottom: 10px; 
+    margin-bottom: 10px;
+}
+
+body.projector-mode .store-info { 
+    flex-direction: row !important; 
+    align-items: center !important; 
+    gap: 10px !important; 
+}
+
+body.projector-mode .store-logo-img { height: 90px !important; }
+body.projector-mode .store-name { color: #fff !important; font-size: 20px !important; letter-spacing: 1px; }
+
+body.projector-mode .projector-tournament-title { 
+    display: block !important; 
+    font-size: 22px !important; 
+    margin: 0 !important; 
+    color: #fff; 
+}   
+
+body.projector-mode .timer-banner { padding: 10px 18px; margin-bottom: 12px; }
+body.projector-mode .timer-display { font-size: 32px; }
+
+body.projector-mode .pairings-title { 
+    color: #ffffff !important; 
+    font-size: 16px !important;
+    margin: 0 0 10px 0 !important;
+}
+
+body.projector-mode .pairings-grid { 
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 10px; 
+    flex-grow: 1;
+    align-content: start;
+    overflow-y: auto;
+}
+
+body.projector-mode .match-card { background: #1a1a1a; border-color: #333; color: white; padding: 10px; }
+body.projector-mode .player-box { background: #252525; border-color: #444; color: #ddd; padding: 6px 8px; font-size: 13px; }
+
+/* ESTILOS DE PROYECTOR PARA TABLA DE STANDINGS FINALES */
+body.projector-mode .final-banner-projector {
+    background: linear-gradient(0deg, #32a9e1 100%, #32a9e1 100%) !important;
+    border: 1px solid #3a6073;
+}
+
+body.projector-mode .standings-section table {
+    background: #1a1a1a;
+    color: white;
+}
+
+body.projector-mode .standings-section th {
+    background-color: #252525;
+    color: #f1c40f;
+    font-size: 18px;
+}
+
+body.projector-mode .standings-section td {
+    border-bottom: 1px solid #333;
+    font-size: 16px;
+    padding: 12px;
+}
+
+body.projector-mode .standings-section tr:hover {
+    background-color: #222;
+}
+
+body.projector-mode .btn-salir-proyector { display: block; opacity: 0.3; transition: opacity 0.3s; }
+body.projector-mode .btn-salir-proyector:hover { opacity: 1; }
+
+        /* Banner de Reloj */
+        .timer-banner { background: #2c3e50; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 15px;}
+        .timer-left { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .timer-display { font-size: 38px; font-weight: bold; font-family: monospace; color: #f1c40f; }
+        .timer-label { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #bdc3c7; }
+        
+        .progress-box { background: rgba(255, 255, 255, 0.1); padding: 8px 15px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
+        .progress-number { font-size: 22px; font-weight: bold; color: #2ecc71; font-family: monospace; }
+        .progress-label { font-size: 11px; text-transform: uppercase; color: #bdc3c7; }
+
+        .timer-controls input { width: 50px; padding: 4px; text-align: center; font-size: 14px; border-radius: 4px; border: none; }
+        .timer-controls button { background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;}
+
+        /* ESTADO ALERTA TIEMPO AGOTADO */
+        body.tiempo-terminado { background-color: #4a0000 !important; }
+        body.tiempo-terminado .timer-banner { background-color: #c0392b !important; animation: pulse-banner 1.5s infinite; }
+        @keyframes pulse-banner {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+
+        body.tiempo-terminado .match-card.pendiente {
+            border: 3px solid #e74c3c !important;
+            background-color: #ffe6e6 !important;
+            animation: shake 0.5s ease-in-out infinite alternate;
+        }
+        body.projector-mode.tiempo-terminado .match-card.pendiente {
+            background-color: #3b0a0a !important;
+            border-color: #ff3333 !important;
+        }
+        body.tiempo-terminado .match-card.pendiente .table-number { background-color: #c0392b !important; }
+
+        @keyframes shake {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-2px); }
+        }
+
+        h1 { text-align: center; color: #1a252f; border-bottom: 2px solid #3498db; padding-bottom: 10px; font-size: 24px; }
+        h2 { color: #2c3e50; margin-top: 30px; font-size: 20px;}
+        
+        .error-box { background-color: #ffebee; color: #c62828; border: 1px solid #c62828; padding: 12px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; text-align: center;}
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #2c3e50; color: white; }
+        body.projector-mode th { background-color: #333; }
+        tr:hover { background-color: #f5f6fa; }
+        
+        .pairings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 15px; margin-top: 15px; }
+        .match-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; transition: all 0.2s; }
+        
+        .table-number { background: #32a9e1; color: white; font-weight: bold; padding: 8px 12px; border-radius: 5px; text-align: center; font-size: 15px; min-width: 65px; }
+        
+        .players-container { display: flex; align-items: center; justify-content: space-around; flex-grow: 1; margin-left: 10px; gap: 5px; }
+        .player-box { padding: 8px 10px; border-radius: 6px; cursor: pointer; text-align: center; flex: 1; font-size: 14px; font-weight: 500; border: 1px dashed #ccc; background: #fafafa; transition: all 0.2s; }
+        .player-box:hover { background: #edf2f7; border-color: #3498db; }
+        .player-box.no-click { cursor: default !important; }
+        .player-box.no-click:hover { background: #fafafa !important; border-color: #ccc !important; }
+
+        /* Estilos para Tarjetas Especiales (BYE / DROP) */
+        .match-card.bye-card { background-color: #fcfcfc; border: 1px solid #dcdde1; }
+        body.projector-mode .match-card.bye-card { background-color: #181818; border-color: #2c3e50; }
+        
+        .bye-badge { 
+            background: #2c3e50; 
+            color: white; 
+            padding: 5px 10px; 
+            border-radius: 15px; 
+            font-size: 10px; 
+            font-weight: bold; 
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .btn-empate { background: transparent; color: #f39c12; border: 2px solid #f39c12; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; text-transform: uppercase; transition: all 0.2s; margin: 0 4px; }
+        .btn-empate:hover { background: rgba(243, 156, 18, 0.1); }
+        .btn-empate.active { background: #f39c12 !important; color: white !important; box-shadow: 0 0 8px rgba(243, 156, 18, 0.5); }
+
+        .player-box.winner { background-color: #d4edda !important; color: #155724 !important; border: 2px solid #28a745 !important; font-weight: bold; }
+        body.projector-mode .player-box.winner { background-color: #0b3c19 !important; color: #2ecc71 !important; border: 2px solid #2ecc71 !important; }
+        
+        .player-box.loser { opacity: 0.5; text-decoration: line-through; }
+        .player-box.draw { background-color: #fef9e7 !important; color: #b7950b !important; border: 2px solid #f39c12 !important; font-weight: bold; }
+        body.projector-mode .player-box.draw { background-color: #3d2c00 !important; color: #f39c12 !important; border: 2px solid #f39c12 !important; }
+
+        .btn-proyector { background: #2980b9; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px;}
+
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+            .store-header { flex-direction: column; gap: 10px; text-align: center; }
+            .store-info { flex-direction: column; gap: 5px; }
+            .admin-panel form { flex-direction: column; width: 100%; }
+            .admin-panel input[type="file"], .admin-panel button { width: 100% !important; }
+            .timer-banner { flex-direction: column; align-items: stretch; text-align: center; gap: 12px; }
+            .timer-left { justify-content: center; gap: 10px; }
+            .timer-controls { display: flex; justify-content: center; align-items: center; gap: 5px; }
+            .timer-display { font-size: 32px; }
+            .pairings-grid { grid-template-columns: 1fr; }
+            .match-card { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
+            .table-number { width: 100%; text-align: center; }
+            .players-container { flex-direction: column; margin-left: 0; gap: 8px; }
+            .player-box { width: 100%; padding: 12px; font-size: 15px; }
+            .btn-empate { width: 100%; padding: 8px; margin: 4px 0; font-size: 13px; }
+            h1 { font-size: 20px; }
+            h2 { font-size: 17px; }
+            table { font-size: 13px; }
+            th, td { padding: 8px 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="store-header">
+            <div class="store-info">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo @NASHOP.MX" class="store-logo-img" onerror="this.style.display='none'">
+                <div class="store-name">@NASHOP.MX</div>
+            </div>
+            <button class="btn-proyector" onclick="toggleModoProyector()">🖥️ Modo Proyector</button>
+        </div>
+
+        <div class="projector-tournament-title">
+            🏆 {{ datos.nombre_torneo }}
+        </div>
+
+        <div class="admin-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <form action="/" method="POST" enctype="multipart/form-data" style="display: flex; gap: 10px; align-items: center;">
+                    <input type="file" name="archivo_tdf" accept=".tdf" required style="font-size: 13px;">
+                    <button type="submit" class="upload-btn">Cargar TDF</button>
+                </form>
+                
+                <form action="/reset" method="POST">
+                    <button type="submit" style="background-color: #7f8c8d; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px;">
+                        🔄 Limpiar
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if datos.torneo_finalizado %}
+    <!-- VISTA DE RESULTADOS FINALES -->
+    <div class="final-banner-projector" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <h1 style="color: #f1c40f; margin: 0 0 8px 0; border: none; font-size: 28px; display: block !important;">🏆 RESULTADOS FINALES DEL TORNEO 🏆</h1>
+        <p style="margin: 0; font-size: 16px; opacity: 0.9;">{{ datos.nombre_torneo }}</p>
+    </div>
+
+    <div class="standings-section" style="flex-grow: 1; overflow-y: auto;">
+        <h2>📊 Tabla Oficial de Posiciones</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 100px; text-align: center;">Lugar</th>
+                    <th>Jugador</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for jugador in datos.jugadores_standings %}
+                <tr {% if jugador.lugar == 1 %}style="background-color: rgba(241, 196, 15, 0.15); font-weight: bold;"{% elif jugador.lugar == 2 %}style="background-color: rgba(189, 195, 199, 0.15);"{% elif jugador.lugar == 3 %}style="background-color: rgba(211, 84, 0, 0.15);"{% endif %}>
+                    <td style="text-align: center;">
+                        {% if jugador.lugar == 1 %}🥇 1{% elif jugador.lugar == 2 %}🥈 2{% elif jugador.lugar == 3 %}🥉 3{% else %}<strong>{{ jugador.lugar }}</strong>{% endif %}
+                    </td>
+                    <td>{{ jugador.nombre }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2" style="text-align: center; color: #666;">No hay datos de standings cargados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% else %}
+
+    <!-- ========================================== -->
+    <!-- 2. PANTALLA DE RONDA ACTIVA (RELOJ + MESAS)-->
+    <!-- ========================================== -->
+    <div class="timer-banner">
+        <div class="timer-left">
+            <div>
+                <div class="timer-label">Tiempo Restante de Ronda</div>
+                <div id="countdown" class="timer-display">30:00</div>
+            </div>
+            <div class="progress-box">
+                <div id="progressText" class="progress-number">0 / 0</div>
+                <div class="progress-label">Mesas Reportadas</div>
+            </div>
+        </div>
+        <div class="timer-controls">
+            <label style="font-size: 11px; display:block; color:#bdc3c7; margin-bottom:2px;">Minutos:</label>
+            <input type="number" id="inputMinutos" value="30" min="1" max="90">
+            <button onclick="cambiarTiempoCustom()">Definir</button>
+            <button onclick="reiniciarReloj()" style="background: #27ae60; margin-left: 3px;">Reiniciar</button>
+        </div>
+    </div>
+
+    <h1>{{ datos.nombre_torneo if datos.nombre_torneo else "Dashboard Pokémon TOM" }}</h1>
+    
+    {% if datos.error %}
+    <div class="error-box">
+        ⚠️ {{ datos.error }}
+    </div>
+    {% endif %}
+    
+    {% if datos.emparejamientos %}
+    <h2 class="pairings-title">⚔️ Emparejamientos (Ronda {{ datos.ronda_actual }}) <span style="font-size: 13px; font-weight: normal; color: #666;">(Selecciona ganador o marca empate)</span></h2>
+    <div class="pairings-grid">
+        {% for match in datos.emparejamientos %}
+            {% set p1_is_bye = 'BYE' in match.jugador1|upper or 'DESCANSO' in match.jugador1|upper or match.jugador1|trim == '' %}
+            {% set p2_is_bye = 'BYE' in match.jugador2|upper or 'DESCANSO' in match.jugador2|upper or match.jugador2|trim == '' %}
+            {% set p1_is_drop = 'DROP' in match.jugador1|upper %}
+            {% set p2_is_drop = 'DROP' in match.jugador2|upper %}
+
+            {% set es_bye_mesa0 = match.mesa|string == '0' or p1_is_bye or p2_is_bye %}
+
+            <div class="match-card {% if es_bye_mesa0 %}bye-card{% endif %}" 
+                 data-mesa="{{ match.mesa }}" 
+                 data-is-bye="{{ 'true' if es_bye_mesa0 else 'false' }}">
+                
+                <div>
+                    <div class="table-number">Mesa {{ match.mesa }}</div>
+                </div>
+                
+                <div class="players-container">
+                    {% if es_bye_mesa0 %}
+                        {% if p1_is_bye or p1_is_drop %}
+                            <div class="player-box loser no-click">{{ match.jugador1 }}</div>
+                            <span class="bye-badge">DESCANSO / BYE</span>
+                            <div class="player-box winner no-click">{{ match.jugador2 }}</div>
+                        {% else %}
+                            <div class="player-box winner no-click">{{ match.jugador1 }}</div>
+                            <span class="bye-badge">DESCANSO / BYE</span>
+                            <div class="player-box loser no-click">{{ match.jugador2 }}</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="player-box {% if p1_is_drop %}loser{% endif %}" onclick="declararGanadorPorClick(this, 0)">
+                            {{ match.jugador1 }}
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <button class="btn-empate" onclick="declararEmpatePorClick(this)">Empate</button>
+                        </div>
+                        
+                        <div class="player-box {% if p2_is_drop %}loser{% endif %}" onclick="declararGanadorPorClick(this, 1)">
+                            {{ match.jugador2 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="standings-section">
+        <h2>🏆 Standings Parciales</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Lugar</th>
+                    <th>Jugador</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for jugador in datos.jugadores_standings %}
+                <tr>
+                    <td><strong>{{ jugador.lugar }}</strong></td>
+                    <td>{{ jugador.nombre }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2" style="text-align: center; color: #666;">No hay datos de standings cargados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endif %}
+    </div>
+
+    <button class="btn-salir-proyector" onclick="salirModoProyector()">✕ Salir de Proyector</button>
+
+    <script>
+        let timerInterval = null;
+        let tiempoAgotadoLocal = false;
+
+        function formatearTiempo(segundos) {
+            let minutos = Math.floor(segundos / 60);
+            let segs = segundos % 60;
+            minutos = minutos < 10 ? "0" + minutos : minutos;
+            segs = segs < 10 ? "0" + segs : segs;
+            return minutos + ":" + segs;
+        }
+
+        function aplicarEstadoTiempoAgotado(agotado) {
+            tiempoAgotadoLocal = agotado;
+            if (agotado) {
+                document.getElementById("countdown").innerText = "¡TIEMPO!";
+                document.body.classList.add("tiempo-terminado");
+                marcarMesasPendientes();
+            } else {
+                document.body.classList.remove("tiempo-terminado");
+                document.querySelectorAll('.match-card').forEach(card => card.classList.remove('pendiente'));
+            }
+        }
+
+        function enviarCambioRelojServidor(segundosTotales) {
+            fetch('/actualizar_reloj', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tiempo_restante: segundosTotales, tiempo_agotado: false })
+            }).catch(error => console.error('Error al actualizar reloj:', error));
+        }
+
+        function iniciarTemporizador(segundosTotales) {
+            enviarCambioRelojServidor(segundosTotales);
+        }
+
+        function reiniciarReloj() {
+            let mins = parseInt(document.getElementById("inputMinutos").value) || 30;
+            iniciarTemporizador(mins * 60);
+        }
+
+        function cambiarTiempoCustom() { reiniciarReloj(); }
+        function toggleModoProyector() { document.body.classList.toggle("projector-mode"); }
+        function salirModoProyector() { document.body.classList.remove("projector-mode"); }
+
+        function actualizarProgresoLocal() {
+            const cards = document.querySelectorAll('.match-card');
+            let totalMesas = cards.length;
+            let reportadas = 0;
+
+            cards.forEach(card => {
+                const esBye = card.getAttribute('data-is-bye') === 'true';
+                const tieneGanador = card.querySelector('.player-box.winner');
+                const tieneEmpate = card.querySelector('.btn-empate.active');
+                
+                if (esBye || tieneGanador || tieneEmpate) {
+                    reportadas++;
+                    card.classList.remove('pendiente');
+                } else if (tiempoAgotadoLocal) {
+                    card.classList.add('pendiente');
+                }
+            });
+
+            const progressText = document.getElementById("progressText");
+            if(progressText) {
+                progressText.innerText = `${reportadas} / ${totalMesas}`;
+            }
+        }
+
+        function marcarMesasPendientes() {
+            const cards = document.querySelectorAll('.match-card');
+            cards.forEach(card => {
+                const esBye = card.getAttribute('data-is-bye') === 'true';
+                const tieneGanador = card.querySelector('.player-box.winner');
+                const tieneEmpate = card.querySelector('.btn-empate.active');
+                
+                if (!esBye && !tieneGanador && !tieneEmpate) {
+                    card.classList.add('pendiente');
+                }
+            });
+        }
+
+        function aplicarEstadoEnTarjeta(matchCard, tipoResultado) {
+            if (matchCard.getAttribute('data-is-bye') === 'true') return;
+
+            let cajasJugadores = matchCard.querySelectorAll('.player-box');
+            let botonEmpate = matchCard.querySelector('.btn-empate');
+            
+            cajasJugadores.forEach(caja => caja.classList.remove('winner', 'loser', 'draw'));
+            if(botonEmpate) botonEmpate.classList.remove('active');
+
+            if (tipoResultado === "jugador1") {
+                cajasJugadores[0].classList.add('winner');
+                cajasJugadores[1].classList.add('loser');
+            } else if (tipoResultado === "jugador2") {
+                cajasJugadores[1].classList.add('winner');
+                cajasJugadores[0].classList.add('loser');
+            } else if (tipoResultado === "empate") {
+                if(botonEmpate) botonEmpate.classList.add('active');
+                cajasJugadores.forEach(caja => caja.classList.add('draw'));
+            }
+            actualizarProgresoLocal();
+        }
+
+        function enviarServidorYActualizar(mesa, resultadoTipo, matchCard) {
+            aplicarEstadoEnTarjeta(matchCard, resultadoTipo);
+            
+            fetch('/guardar_resultado', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mesa: mesa, resultado: resultadoTipo })
+            }).catch(error => console.error('Error al sincronizar:', error));
+        }
+
+        function declararGanadorPorClick(elementoJugador, indiceSeleccionado) {
+            const container = elementoJugador.closest('.players-container');
+            const matchCard = container.closest('.match-card');
+            const mesa = matchCard.getAttribute('data-mesa');
+            const yaGano = elementoJugador.classList.contains('winner');
+
+            let resultadoTipo = !yaGano ? (indiceSeleccionado === 0 ? "jugador1" : "jugador2") : "borrado";
+            enviarServidorYActualizar(mesa, resultadoTipo, matchCard);
+        }
+
+        function declararEmpatePorClick(botonEmpate) {
+            const container = botonEmpate.closest('.players-container');
+            const matchCard = container.closest('.match-card');
+            const mesa = matchCard.getAttribute('data-mesa');
+            const yaEmpatados = botonEmpate.classList.contains('active');
+
+            let resultadoTipo = !yaEmpatados ? "empate" : "borrado";
+            enviarServidorYActualizar(mesa, resultadoTipo, matchCard);
+        }
+
+        function sincronizarConServidor() {
+            fetch('/obtener_reloj')
+            .then(res => res.json())
+            .then(data => {
+                if (data.tiempo_agotado) {
+                    aplicarEstadoTiempoAgotado(true);
+                } else {
+                    aplicarEstadoTiempoAgotado(false);
+                    document.getElementById("countdown").innerText = formatearTiempo(data.tiempo_restante);
+                }
+            }).catch(err => console.error('Error reloj:', err));
+
+            fetch('/obtener_resultados')
+            .then(response => response.json())
+            .then(resultados => {
+                for (let mesa in resultados) {
+                    let tipoResultado = resultados[mesa];
+                    let matchCard = document.querySelector(`.match-card[data-mesa="${mesa}"]`);
+                    if (!matchCard) continue;
+
+                    let p1Winner = matchCard.querySelectorAll('.player-box')[0]?.classList.contains('winner');
+                    let p2Winner = matchCard.querySelectorAll('.player-box')[1]?.classList.contains('winner');
+                    let empateActive = matchCard.querySelector('.btn-empate')?.classList.contains('active');
+
+                    let estadoActual = "borrado";
+                    if (p1Winner) estadoActual = "jugador1";
+                    else if (p2Winner) estadoActual = "jugador2";
+                    else if (empateActive) estadoActual = "empate";
+
+                    if (estadoActual !== tipoResultado) {
+                        aplicarEstadoEnTarjeta(matchCard, tipoResultado);
+                    }
+                }
+            }).catch(error => console.error('Error resultados:', error));
+        }
+
+        setInterval(sincronizarConServidor, 1000);
+        actualizarProgresoLocal();
+    </script>
+    <body class="{% if datos.torneo_finalizado %}torneo-terminado-vista{% endif %}"></body>
+</body>
+</html>
